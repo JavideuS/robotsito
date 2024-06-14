@@ -8,6 +8,9 @@
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
+  <depend>custom_action_interfaces</depend>
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>adafruit-circuitpython-servokit</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

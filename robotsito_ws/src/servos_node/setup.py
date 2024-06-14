@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+		'server = ' + package_name + '.servo_controller_server:main',
+		'client = ' + package_name + '.servo_controller_client:main',
         ],
     },
 )
