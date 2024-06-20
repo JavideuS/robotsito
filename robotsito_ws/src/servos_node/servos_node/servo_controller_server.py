@@ -13,11 +13,13 @@ class ActionServer(Node):
     #Constructor
     def __init__(self):
         #Initializing Node
-        super.__init__("gait_action_server<3")
+        super().__init__("gait_action_server")
         #Then we initialize the board ant the servos
-        self.kit = ServoKit(channels=12)
+        #Even though it only uses 12 channels you need to initilize the servokit for the 16 channels
+        SERVO_CHANNELS=16
+        self.kit = ServoKit(channels=SERVO_CHANNELS)
         #Initialize pulse width
-        for i in range(12):
+        for i in range(SERVO_CHANNELS):
             #Min pulse -> 500
             #Max pulse -> 2500
             self.kit.servo[i].set_pulse_width_range(500,2500)

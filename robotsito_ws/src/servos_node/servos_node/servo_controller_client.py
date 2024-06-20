@@ -11,7 +11,7 @@ class actionClient(Node):
     #Constructor
     def __init__(self):
         #Initialize the node
-        super().__init__("gait_action_client<3")
+        super().__init__("gait_action_client")
         #Initialize the node to an actiion cliente
         #Parameters to initialize action client -> Node, Node_type, Node_Name
         self._action_client = ActionClient(
