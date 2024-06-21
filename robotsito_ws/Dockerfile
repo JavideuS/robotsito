@@ -13,7 +13,7 @@ ARG ws=/robotsito/robotsito_ws
 WORKDIR $ws
 
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y python3-venv python3-pip \
+RUN apt-get update && apt-get install -y python3-venv python3-pip dos2unix\
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the src directory into the container (Also as src folder)
@@ -35,7 +35,8 @@ RUN python3 -m venv $ws/venv \
     && pip install adafruit-circuitpython-servokit
 
 #GIving exec permissions and running the script to modify setup.bash and setup.sh
-RUN chmod +x update_setup_scripts.sh \    
+RUN dos2unix update_setup_scripts.sh \
+    && chmod +x update_setup_scripts.sh \
     && ./update_setup_scripts.sh
 
 # Source the workspace setup script

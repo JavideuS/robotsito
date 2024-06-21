@@ -1,4 +1,3 @@
-# update_setup_scripts.sh
 #!/bin/bash
 
 SETUP_BASH="install/setup.bash"
