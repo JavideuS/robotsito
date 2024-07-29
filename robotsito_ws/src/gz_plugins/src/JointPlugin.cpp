@@ -10,6 +10,7 @@
 #include <gz/sim/components.hh>  //To get the components
 #include <gz/sim/Joint.hh>
 #include <iostream>
+#include <optional>
 
 
 // Inherit from System and 2 extra interfaces:
@@ -26,7 +27,6 @@ class JointPlugin : public gz::sim::System,
     std::vector<gz::sim::Joint> joints;
     std::vector<float> jointAngles;
     std::vector<float> targetAngles;
-    gz::sim::Entity joint;
     bool new_msg;
 
   void OnRosMsg(const gz::msgs::Float_V &_msg)
@@ -110,38 +110,31 @@ class JointPlugin : public gz::sim::System,
       }
       else{
         for(int i = 0; i < joints.size(); i++){
-        if (this->joints[i] != gz::sim::kNullEntity )
-        {
           std::vector<double> velocities = {1.0};
 
-          auto joint2 = gz::sim::Joint(joints[i]);
-          joint2.SetVelocity(_ecm, velocities);
-          auto velocity = joint2.Velocity(_ecm);
+          this->joints[i].SetVelocity(_ecm, velocities);
+          auto velocity = this->joints[i].Velocity(_ecm);
           
-
+         
           // Print joint name
-          auto nameComp = _ecm.Component<gz::sim::components::Name>(this->joint);
-          if (nameComp)
+          auto joint_name = this->joints[i].Name(_ecm);
+          if (joint_name.has_value())
           {
-            gzdbg << "Joint name: " << nameComp->Data() << std::endl;
+            gzdbg << "Joint name: " << joint_name.value() << std::endl;
           }
 
           // Print current velocity
-          auto velocityComp = _ecm.Component<gz::sim::components::JointVelocity>(this->joint);
-          if (velocityComp)
+          auto joint_velocity = this->joints[i].Velocity(_ecm);
+
+          if (joint_velocity.has_value())
           {
-            gzdbg << "Current velocity: " << velocityComp->Data()[0] << std::endl;
+            gzdbg << "Current velocity: " << joint_velocity.value().data() << std::endl;
           }
 
           gzdbg << "The command ran somehow\n";
 
         } 
-        else
-        {
-          gzerr << "Joint not found!" << std::endl;
-        }
-      }
-      }      
+      }    
     }
 };
 
