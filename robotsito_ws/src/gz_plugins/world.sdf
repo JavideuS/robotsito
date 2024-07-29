@@ -1,0 +1,1013 @@
+<sdf version='1.10'>
+  <world name='empty'>
+    <physics name='1ms' type='ignored'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <plugin name='gz::sim::systems::Physics' filename='gz-sim-physics-system'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='gz-sim-user-commands-system'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='gz-sim-scene-broadcaster-system'/>
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system'/>
+    <gravity>0 0 -9.8000000000000007</gravity>
+    <magnetic_field>5.5644999999999998e-06 2.2875799999999999e-05 -4.2388400000000002e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <scene>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode/>
+            </friction>
+            <bounce/>
+            <contact/>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.800000012 0.800000012 0.800000012 1</ambient>
+            <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+            <specular>0.800000012 0.800000012 0.800000012 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name="robotsito">
+    <static>false</static>
+
+    <!-- Chassis -->
+    <link name="chasis">
+      <pose>0 0 0.55000000000000004 0 0 0</pose>
+      <visual name="chasis_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/chasis.dae</uri>
+            <scale>10 10 10</scale> 
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="chasis_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/chasis.dae</uri>
+            <scale>10 10 10</scale> 
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Left forward leg-->
+    <!-- Main servo-->
+    <link name="dm996_LF">
+      <pose>0.33110099999999998 -0.52025600000000005 0.76241000000000048 1.5708000000000011 0 0</pose>
+      <visual name="dm996_LF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="dm996_LF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Chasis - servo joint-->
+    <joint name='joint_chassis_dm996_LF' type='fixed'>
+      <parent>chasis</parent>
+      <child>dm996_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Upper part -->
+    <link name="upper_leg_LF">
+      <pose>0.22919800000000001 -1.01007 0.76735299999999995 0 0 0</pose>
+      <visual name="upper_leg_LF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="upper_leg_LF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Servo - upper_leg_lf joint-->
+    <joint name='joint_dm996_upper_leg_LF' type='revolute'>
+      <parent>dm996_LF</parent>
+      <child>upper_leg_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Miuzei9g0_lf-->
+    <link name="miuzei9g0_LF">
+      <pose>0.40347100000000008 -1.3184499999999995 1.0931199999999999 1.606920000000003 -1.0481000000000003 -1.611430000000003</pose>
+      <visual name="miuzei9g_0_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_0_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- upper_leg_lf - miuzei9g0_lf joint-->
+    <joint name='joint_upper_leg_lf-miuzei9g0_lf' type='fixed'>
+      <parent>upper_leg_LF</parent>
+      <child>miuzei9g0_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Middle leg -->
+    <link name="middle_leg_LF">
+      <pose>0.055577000000000008 -1.3421100000000001 1.13314 0 0 -1.5708000000000011</pose>
+      <visual name="middle_leg_LF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="middle_leg_LF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!--miuzei0g0_lf - middle_leg_lf joint-->
+    <joint name='joint_miuzei9g0_lf-middle_leg_lf' type='revolute'>
+      <parent>miuzei9g0_LF</parent>
+      <child>middle_leg_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+     <!-- Miuzei9g1_lf-->
+    <link name="miuzei9g1_LF">
+      <pose>0.2347504198551178 -1.7647700309753414 0.5815349817276001 1.5707999991580599 0.78539798832362939 -1.5707999991580599</pose>
+      <visual name="miuzei9g_1_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_1_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- middle_leg_lf - miuzei9g1_lf joint-->
+    <joint name='joint_middle_leg_lf-miuzei9g1_lf' type='fixed'>
+      <parent>middle_leg_LF</parent>
+      <child>miuzei9g1_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Lower leg LF-->
+    <link name="lower_leg_LF">
+      <pose>-0.10765600000000003 -1.7996500000000002 0.54491900000000004 0 0 -1.5708000000000011</pose>
+      <visual name="lower_leg_LF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="lower_leg_LF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!--miuzei0g1_lf - lower_leg_lf joint-->
+    <joint name='joint_miuzei9g1_lf-lower_leg_lf' type='revolute'>
+      <parent>miuzei9g1_LF</parent>
+      <child>lower_leg_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Leg tip -->
+    <link name="leg_tip_LF">
+      <pose>-0.23049099743366241 -1.799382209777832 0 0 0 0</pose>
+      <visual name="leg_tip_LF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="leg_tip_LF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- lower_leg_lf - leg_tip joint-->
+    <joint name='joint_lower_leg_lf-leg_tip_lf' type='fixed'>
+      <parent>lower_leg_LF</parent>
+      <child>leg_tip_LF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+
+
+<!-- Right forward leg-->
+    <!-- Main servo-->
+    <link name="dm996_RF">
+      <pose>0.33214399999999999 -0.26141500000000006 0.76632199999999995 -1.5708000000000011 0 0</pose>
+      <visual name="dm996_RF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="dm996_RF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Chasis - servo joint-->
+    <joint name='joint_chassis_dm996_RF' type='fixed'>
+      <parent>chasis</parent>
+      <child>dm996_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Upper part -->
+    <link name="upper_leg_RF">
+      <pose>0.23279299999999997 0.22635199999999997 0.76802400000000004 0 0 3.1415899999999999</pose>
+      <visual name="upper_leg_RF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="upper_leg_RF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Servo - upper_leg_RF joint-->
+    <joint name='joint_dm996_upper_leg_RF' type='revolute'>
+      <parent>dm996_RF</parent>
+      <child>upper_leg_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Miuzei9g0_RF-->
+    <link name="miuzei9g0_RF">
+      <pose>0.40080599999999994 0.53118900000000002 1.0949500000000001 -1.5707999999999998 -1.0546200000000006 1.5596599999999998</pose>
+      <visual name="miuzei9g_0_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_0_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- upper_leg_RF - miuzei9g0_RF joint-->
+    <joint name='joint_upper_leg_RF-miuzei9g0_RF' type='fixed'>
+      <parent>upper_leg_RF</parent>
+      <child>miuzei9g0_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Middle leg -->
+    <link name="middle_leg_RF">
+      <pose>0.051229999999999998 0.56349700000000014 1.1482699999999999 0 0 -3.1334499999999998</pose>
+      <visual name="middle_leg_RF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="middle_leg_RF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!--miuzei0g0_RF - middle_leg_RF joint-->
+    <joint name='joint_miuzei9g0_RF-middle_leg_RF' type='revolute'>
+      <parent>miuzei9g0_RF</parent>
+      <child>middle_leg_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+     <!-- Miuzei9g1_RF-->
+    <link name="miuzei9g1_RF">
+      <pose>0.22933999999999999 0.98729900000000015 0.59411999999999987 -1.5707999999999993 0.78539799999999982 1.5708000000000009</pose>
+      <visual name="miuzei9g_1_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_1_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- middle_leg_RF - miuzei9g1_RF joint-->
+    <joint name='joint_middle_leg_RF-miuzei9g1_RF' type='fixed'>
+      <parent>middle_leg_RF</parent>
+      <child>miuzei9g1_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Lower leg RF-->
+    <link name="lower_leg_RF">
+      <pose>-0.11676200000000002 1.0236199999999998 0.55525199999999997 0 0 -1.5708000000000009</pose>
+      <visual name="lower_leg_RF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="lower_leg_RF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!--miuzei0g1_RF - lower_leg_RF joint-->
+    <joint name='joint_miuzei9g1_RF-lower_leg_RF' type='revolute'>
+      <parent>miuzei9g1_RF</parent>
+      <child>lower_leg_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Leg tip -->
+    <link name="leg_tip_RF">
+      <pose>-0.23874999582767487 1.0247747898101807 0 0 0 0</pose>
+      <visual name="leg_tip_RF_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="leg_tip_RF_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- lower_leg_RF - leg_tip joint-->
+    <joint name='joint_lower_leg_RF-leg_tip_RF' type='fixed'>
+      <parent>lower_leg_RF</parent>
+      <child>leg_tip_RF</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+<!-- Left backward leg-->
+    <!-- Main servo-->
+    <link name="dm996_LB">
+      <pose>0.86952000000000018 -0.52005899999999994 0.75995100000000027 -1.5707999999999991 -0.0067399999999994921 -3.1415899999999994</pose>
+      <visual name="dm996_LB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="dm996_LB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Chasis - servo joint-->
+    <joint name='joint_chassis_dm996_LB' type='fixed'>
+      <parent>chasis</parent>
+      <child>dm996_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Upper part -->
+    <link name="upper_leg_LB">
+      <pose>0.96344300000000005 -1.01007 0.76511899999999999 0 0 0</pose>
+      <visual name="upper_leg_LB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="upper_leg_LB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Servo - upper_leg_LB joint-->
+    <joint name='joint_dm996_upper_leg_LB' type='revolute'>
+      <parent>dm996_LB</parent>
+      <child>upper_leg_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Miuzei9g0_LB-->
+    <link name="miuzei9g0_LB">
+      <pose>1.13025 -1.3081799999999999 1.09171 1.559830000000002 -1.0486600000000008 -1.5462800000000023</pose>
+      <visual name="miuzei9g_0_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_0_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- upper_leg_LB - miuzei9g0_LB joint-->
+    <joint name='joint_upper_leg_LB-miuzei9g0_LB' type='fixed'>
+      <parent>upper_leg_LB</parent>
+      <child>miuzei9g0_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Middle leg -->
+    <link name="middle_leg_LB">
+      <pose>0.7875970000000001 -1.3421100000000001 1.13314 0 0 -1.5708000000000011</pose>
+      <visual name="middle_leg_LB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="middle_leg_LB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_left_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!--miuzei0g0_LB - middle_leg_LB joint-->
+    <joint name='joint_miuzei9g0_LB-middle_leg_LB' type='revolute'>
+      <parent>miuzei9g0_LB</parent>
+      <child>middle_leg_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+     <!-- Miuzei9g1_LB-->
+    <link name="miuzei9g1_LB">
+      <pose>0.96745400000000015 -1.7647699999999999 0.58153400000000033 1.5708000000000015 0.78539800000000093 -1.5707999999999986</pose>
+      <visual name="miuzei9g_1_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_1_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- middle_leg_LB - miuzei9g1_LB joint-->
+    <joint name='joint_middle_leg_LB-miuzei9g1_LB' type='fixed'>
+      <parent>middle_leg_LB</parent>
+      <child>miuzei9g1_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+     <!-- Lower leg LB-->
+    <link name="lower_leg_LB">
+      <pose>0.62510600000000005 -1.7974699999999999 0.54491900000000004 0 0 -1.5708000000000009</pose>
+      <visual name="lower_leg_LB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="lower_leg_LB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!--miuzei0g1_LB - lower_leg_LB joint-->
+    <joint name='joint_miuzei9g1_LB-lower_leg_LB' type='revolute'>
+      <parent>miuzei9g1_LB</parent>
+      <child>lower_leg_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Leg tip -->
+    <link name="leg_tip_LB">
+      <pose>0.49821498990058899 -1.7968050241470337 0 0 0 0</pose>
+      <visual name="leg_tip_LB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="leg_tip_LB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- lower_leg_LB - leg_tip joint-->
+    <joint name='joint_lower_leg_LB-leg_tip_LB' type='fixed'>
+      <parent>lower_leg_LB</parent>
+      <child>leg_tip_LB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+
+
+<!-- Right backward leg-->
+    <!-- Main servo-->
+    <link name="dm996_RB">
+      <pose>0.87290800000000002 -0.26009100000000007 0.76758100000000007 1.5707999999999984 2.012291937627305e-16 3.1415899999999999</pose>
+      <visual name="dm996_RB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="dm996_RB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/dm996.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Chasis - servo joint-->
+    <joint name='joint_chassis_dm996_RB' type='fixed'>
+      <parent>chasis</parent>
+      <child>dm996_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Upper part -->
+    <link name="upper_leg_RB">
+      <pose>0.97193099999999988 0.22635299999999997 0.76802400000000004 0 0 3.1415899999999999</pose>
+      <visual name="upper_leg_RB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="upper_leg_RB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Servo - upper_leg_RB joint-->
+    <joint name='joint_dm996_upper_leg_RB' type='revolute'>
+      <parent>dm996_RB</parent>
+      <child>upper_leg_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Miuzei9g0_RB-->
+    <link name="miuzei9g0_RB">
+      <pose>1.1369699999999998 0.52942499999999992 1.09606 -1.5708000000000002 -1.0445100000000012 1.5596599999999998</pose>
+      <visual name="miuzei9g_0_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_0_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- upper_leg_RB - miuzei9g0_RB joint-->
+    <joint name='joint_upper_leg_RB-miuzei9g0_RB' type='fixed'>
+      <parent>upper_leg_RB</parent>
+      <child>miuzei9g0_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Middle leg -->
+    <link name="middle_leg_RB">
+      <pose>0.79261000000000004 0.56349700000000014 1.1482699999999999 0 0 3.0871599999999999</pose>
+      <visual name="middle_leg_RB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="middle_leg_RB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!--miuzei0g0_RB - middle_leg_RB joint-->
+    <joint name='joint_miuzei9g0_RB-middle_leg_RB' type='revolute'>
+      <parent>miuzei9g0_RB</parent>
+      <child>middle_leg_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+     <!-- Miuzei9g1_RB-->
+    <link name="miuzei9g1_RB">
+      <pose>0.99043499999999995 0.97707899999999981 0.58389599999999997 -1.5210499999999991 0.78539800000000137 1.5708000000000009</pose>
+      <visual name="miuzei9g_1_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_1_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- middle_leg_RB - miuzei9g1_RB joint-->
+    <joint name='joint_middle_leg_RB-miuzei9g1_RB' type='fixed'>
+      <parent>middle_leg_RB</parent>
+      <child>miuzei9g1_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <!-- Lower leg RB-->
+    <link name="lower_leg_RB">
+      <pose>0.64710400000000001 1.02362 0.55525199999999997 0 0 -1.5708000000000009</pose>
+      <visual name="lower_leg_RB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="lower_leg_RB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/lower_leg.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!--miuzei0g1_RB - lower_leg_RB joint-->
+    <joint name='joint_miuzei9g1_RB-lower_leg_RB' type='revolute'>
+      <parent>miuzei9g1_RB</parent>
+      <child>lower_leg_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-1.5708</lower>
+          <upper>1.5708</upper>
+          <effort>1e6</effort>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Leg tip -->
+    <link name="leg_tip_RB">
+      <pose>0.52892011404037476 1.038599967956543 0 0 0 0</pose>
+      <visual name="leg_tip_RB_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="leg_tip_RB_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/leg_tip.dae</uri>
+            <scale>10 10 10</scale> <!-- Scaling the mesh by a factor of 10 -->
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- lower_leg_RB - leg_tip joint-->
+    <joint name='joint_lower_leg_RB-leg_tip_RB' type='fixed'>
+      <parent>lower_leg_RB</parent>
+      <child>leg_tip_RB</child>
+      <pose>0 0 0 0 0 0</pose>
+    </joint>
+
+    <plugin name="JointPlugin" filename="libgz_plugins.so">
+      <jointNames>
+        <jointName>joint_dm996_upper_leg_LF</jointName>
+        <jointName>joint_dm996_upper_leg_RF</jointName>
+        <jointName>joint_dm996_upper_leg_LB</jointName>
+        <jointName>joint_dm996_upper_leg_RB</jointName>
+        <jointName>joint_miuzei9g0_lf-middle_leg_lf</jointName>
+        <jointName>joint_miuzei9g0_RF-middle_leg_RF</jointName>
+        <jointName>joint_miuzei9g0_LB-middle_leg_LB</jointName>
+        <jointName>joint_miuzei9g0_RB-middle_leg_RB</jointName>
+        <jointName>joint_miuzei9g1_lf-lower_leg_lf</jointName>
+        <jointName>joint_miuzei9g1_RF-lower_leg_RF</jointName>
+        <jointName>joint_miuzei9g1_LB-lower_leg_LB</jointName>
+        <jointName>joint_miuzei9g1_RB-lower_leg_RB</jointName>
+      </jointNames>
+    </plugin>
+
+  </model>
+
+    <light name='sun' type='directional'>
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  
+  </world>
+</sdf>
