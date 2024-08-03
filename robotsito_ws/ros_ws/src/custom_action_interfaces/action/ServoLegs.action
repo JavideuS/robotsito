@@ -1,0 +1,10 @@
+# Goal
+uint8[] angles
+#float32[] angles
+---
+# Result
+bool success
+---
+# Feedback
+uint8[] current_angles
+#float32[] current_angles

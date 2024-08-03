@@ -1,0 +1,6 @@
+- ros_topic_name: "Joints_angle"
+  gz_topic_name: "/Joints_angle"
+  #ros_type_name: "custom_action_interfaces/action/ServoLegs"
+  ros_type_name: "ros_gz_interfaces/msg/Float32Array"
+  gz_type_name: "gz.msgs.Float_V"
+  direction: "ROS_TO_GZ"
