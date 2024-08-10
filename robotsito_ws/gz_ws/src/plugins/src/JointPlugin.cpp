@@ -2,15 +2,15 @@
 #include <gz/sim/System.hh> //Libraries for plugin (ISystem....)
 #include <gz/plugin/Register.hh> //To register the plugin
 #include <gz/transport/Node.hh> //For communications (Topics)
-#include <gz/common.hh>
+#include <gz/utils.hh>
 #include <gz/sim/Model.hh> //To control models (The robot)
 #include <gz/math/Vector3.hh>
+#include <gz/math/PID.hh>
 #include <vector>
 #include <gz/msgs/float_v.pb.h>
 #include <gz/sim/components.hh>  //To get the components
 #include <gz/sim/Joint.hh>
 #include <iostream>
-
 
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
@@ -26,6 +26,8 @@ class JointPlugin : public gz::sim::System,
     std::vector<gz::sim::Joint> joints;
     std::vector<float> currentAngles;
     std::vector<float> targetAngles;
+    std::vector<gz::math::PID> pidControllers;
+    std::vector<double> previousVelocity;
     bool new_msg;
 
   void OnRosMsg(const gz::msgs::Float_V &_msg)
@@ -103,73 +105,106 @@ class JointPlugin : public gz::sim::System,
       gzerr << "Expected 12 revolute joints, but found " << this->joints.size() << std::endl;
       return;
     }
-    this->targetAngles.resize(this->joints.size(), 0.0f);
+    //this->targetAngles.resize(this->joints.size(), 0.0f);
     // Gz node
     this->node.Subscribe("/Joints_angle", &JointPlugin::OnRosMsg, this);
+
+    this->previousVelocity.resize(12, 0.0);
+    this->targetAngles.resize(12, 0.0);
+    this->targetAngles[0] = 1.57;
+    // Set PID gains
+    double kp = 3;  // Proportional gain
+    double ki = 0.1;
+    double kd = 0.01;  // Derivative gain
+
+    // Initialize the PID controllers for each joint
+    for (int i = 0; i < 12; ++i)
+    {
+      this->pidControllers.push_back(gz::math::PID(kp, ki, kd));
+    }
+
     }
 
     //ISystemUpdate
     virtual void Update 	( 	const gz::sim::UpdateInfo &    _info,
                           gz::sim::EntityComponentManager  & _ecm ) {
       
-      if(this->new_msg){
-        gzdbg << "Another msg" << std::endl;
-        // std::vector<double> velocities = {5.0};
-        // this->joints[0].ResetVelocity(_ecm,velocities);
-        // this->joints[2].ResetVelocity(_ecm,velocities);
-        // this->joints[3].ResetVelocity(_ecm,velocities);
-        // this->joints[1].SetVelocity(_ecm,velocities);
-        // velocities = {-1.0};
-        // this->joints[4].SetVelocity(_ecm,velocities);
-        // this->joints[5].SetVelocity(_ecm,velocities);
-        // this->joints[6].SetVelocity(_ecm,velocities);
-        // this->joints[7].SetVelocity(_ecm,velocities);
+      //If simulation isn/t running
+      if (_info.paused)
+        return;
+      //If simulation hasn't started 
+      if (_info.simTime <= std::chrono::_V2::steady_clock::duration{0}){
+        //Note that this basically makes sure that the values retrieved by position and velocity are well initialized
+        return; // Wait until the simulation has started
+      }
 
-        std::vector<double> torque = {100.275};
+    
+      for (std::size_t i = 0; i < 12; ++i){
+        
+        this->joints[i].EnablePositionCheck(_ecm);
+        this->joints[i].EnableVelocityCheck(_ecm);
+        auto currentAngleOpt = this->joints[i].Position(_ecm);
+        auto currentVelocityOpt = this->joints[i].Velocity(_ecm);
+
+        // Check if the values are valid
+        if (!currentAngleOpt.has_value() || !currentVelocityOpt.has_value())
+        {
+          gzwarn << "Joint " << i << " has no valid position or velocity." << std::endl;
+          continue;
+        }
+
+        // Check that the vectors have at least one element
+        if (currentAngleOpt.value().empty() || currentVelocityOpt.value().empty())
+        {
+            gzwarn << "Joint " << i << " returned an empty position or velocity vector." << std::endl;
+            continue;
+        }
+          
+        if (this->pidControllers.size() <= i) {
+          gzerr << "PID controller index " << i << " out of bounds." << std::endl;
+          return;
+        }
+        
+
+        double currentAngle = currentAngleOpt.value()[0];    // Assuming single DOF joints
+        double currentVelocity = currentVelocityOpt.value()[0];
+
+        // Apply a low-pass filter to the velocity
+        double alpha = 0.8;
+        double smoothedVelocity = alpha * currentVelocity + (1 - alpha) * this->previousVelocity[i];
+        this->previousVelocity[i] = smoothedVelocity;
+
+        double error = currentAngle - this->targetAngles[i];
+
+        double force = this->pidControllers[i].Update(error, smoothedVelocity, _info.dt);
+
+        gzdbg << "Joint " << i << ": Error: " << error << ", Force: " << force << std::endl;
+
+        double maxForce = 1.275; // Adjust this value based on your system's requirements
+       
+        force = std::clamp(force, -maxForce, maxForce);
+
+        this->joints[i].SetForce(_ecm, {force});
+      } 
+
+      std::vector<double> torque = {-0.2};
+      std::vector<double> torque_R = {0.2};
+      std::vector<double> torque_2 = {0.1};
+      std::vector<double> torque_low = {0.04};
+        
+      if(this->new_msg){
+        torque = {-1.275};
+        torque_R = {1.275};
 
         this->joints[0].SetForce(_ecm,torque);
-        this->joints[1].SetForce(_ecm,torque);
-        this->joints[2].SetForce(_ecm,torque);
+        this->joints[3].SetForce(_ecm,torque_R);
+        this->joints[6].SetForce(_ecm,torque);
+        this->joints[9].SetForce(_ecm,torque_R);
 
         std::cout << "Message jaja\n";
-       
-        gzdbg << "Joint axis: " << this->joints[0].Axis(_ecm).value().data();
-      //   for(std::size_t i = 0; i < joints.size(); i++){
-      //     //) by default so if the targetAngle equals the currentAngle, it doesn't change position
-      //     std::vector<double> velocities = {0.0};
-      //     if(this->currentAngles[i] > this->targetAngles[i]){
-      //      velocities = {5.0};
-      //     }
-      //     else if(this->currentAngles[i] < this->targetAngles[i]){
-      //       velocities = {-5.0};
-      //     }
 
-
-      //     this->joints[i].SetVelocity(_ecm, velocities);
-      //     auto velocity = this->joints[i].Velocity(_ecm);
-          
-      //    //Target angles becames current angles
-      //    this->currentAngles[i] = this->targetAngles[i];
-
-      //     //Debugging messages
-      //     // Print joint name
-      //     auto joint_name = this->joints[i].Name(_ecm);
-      //     if (joint_name.has_value())
-      //     {
-      //       gzdbg << "Joint name: " << joint_name.value() << std::endl;
-      //     }
-
-      //     // Print current velocity
-      //     auto joint_velocity = this->joints[i].Velocity(_ecm);
-      //     this->joints[i].EnableVelocityCheck(_ecm);
-      //     if (joint_velocity.has_value())
-      //     {
-      //       gzdbg << "Current velocity: " << joint_velocity.value().data() << std::endl;
-      //     }
-
-      //   }
-         //Resetting the msg_sign
-         this->new_msg=false; 
+        //Resetting the msg_sign
+        this->new_msg=false; 
       } 
     }
 };
@@ -181,7 +216,6 @@ GZ_ADD_PLUGIN(JointPlugin,
               JointPlugin::ISystemUpdate)
  
 // Add plugin alias so that we can refer to the plugin without the version
-// namespace
 GZ_ADD_PLUGIN_ALIAS(JointPlugin, "gz::sim::JointPlugin")
 
 
