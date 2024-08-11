@@ -62,6 +62,9 @@ class actionClient(Node):
 
         # Shutdown after receiving a result
         rclpy.shutdown()        
+
+    def walking_pattern():
+        return [90,0];
    
 
 
@@ -70,9 +73,9 @@ def main(args=None):
     #Initializing action client
     action_client = actionClient()
     #Example angles
-    angles = [90, 45, 45, 90, 45, 45, 90, 45, 45, 90, 45, 45]
+    angles = [180, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
     #Sending the goal
-    actionClient.send_goal(angles)
+    action_client.send_goal(angles)
 
     #Calling the client node
     rclpy.spin(action_client)
