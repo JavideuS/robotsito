@@ -10,6 +10,11 @@
 #include <gz/sim/components.hh>  //To get the components
 #include <gz/sim/Joint.hh>
 
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <custom_action_interfaces/action/servo_legs.hpp>
+
+
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
 class JointPlugin : public gz::sim::System, public gz::sim::ISystemConfigure, public gz::sim::ISystemUpdate
@@ -27,6 +32,12 @@ private:
   std::vector<gz::math::PID> pidControllers;
   // Velocity to calculate pid
   std::vector<double> previousVelocity;
+  // ROS 2 Node
+  rclcpp::Node::SharedPtr rosNode;
+
+   // Action server definition
+  using JointAction = custom_action_interfaces::action::ServoLegs;
+  rclcpp_action::Server<JointAction>::SharedPtr actionServer;
 
   void OnRosMsg(const gz::msgs::Float_V& _msg)
   {
@@ -54,6 +65,13 @@ public:
   {
     (void)_sdf;
     (void)_eventMgr;
+
+     // Initialize ROS 2 node
+    if (!rclcpp::ok())
+    {
+      rclcpp::init(0, nullptr);
+    }
+    this->rosNode = std::make_shared<rclcpp::Node>("gazebo_joint_plugin");
 
     // Create model object to access convenient functions
     this->model = gz::sim::Model(_entity);
@@ -107,6 +125,17 @@ public:
     {
       this->pidControllers.push_back(gz::math::PID(kp, ki, kd));
     }
+
+    // Initialize ROS 2 action server
+    this->actionServer = rclcpp_action::create_server<JointAction>(
+        this->rosNode,
+        "ServoLegs",
+        std::bind(&JointPlugin::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&JointPlugin::handle_cancel, this, std::placeholders::_1),
+        std::bind(&JointPlugin::handle_accepted, this, std::placeholders::_1));
+
+    // Start ROS 2 node in a separate thread
+    std::thread([this]() { rclcpp::spin(this->rosNode); }).detach();
   }
 
   // ISystemUpdate
@@ -179,6 +208,57 @@ public:
     // std::vector<double> torque_R = {0.2};
     // std::vector<double> torque_2 = {0.1};
     // std::vector<double> torque_low = {0.04};
+  }
+
+  // Handle goal
+  rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const JointAction::Goal> goal)
+  {
+    RCLCPP_INFO(this->rosNode->get_logger(), "Received goal request");
+    (void)uuid;
+
+    if (goal->angles.size() != 12)
+    {
+      RCLCPP_WARN(this->rosNode->get_logger(), "Goal has incorrect number of angles");
+      return rclcpp_action::GoalResponse::REJECT;
+    }
+
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+  }
+
+  // Handle cancel
+  rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<JointAction>> goal_handle)
+  {
+    RCLCPP_INFO(this->rosNode->get_logger(), "Received request to cancel goal");
+    return rclcpp_action::CancelResponse::ACCEPT;
+  }
+
+  // Handle accepted
+  void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<JointAction>> goal_handle)
+  {
+    std::thread([this, goal_handle]()
+    {
+      const auto goal = goal_handle->get_goal();
+      auto result = std::make_shared<JointAction::Result>();
+
+      for (std::size_t i = 0; i < 12; ++i)
+      {
+        if (goal_handle->is_canceling())
+        {
+          result->success = false;
+          goal_handle->canceled(result);
+          RCLCPP_INFO(this->rosNode->get_logger(), "Goal canceled");
+          return;
+        }
+
+        this->targetAngles[i] = (goal->angles[i] - 90) * (M_PI / 180);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // Simulate processing delay
+      }
+
+      result->success = true;
+      goal_handle->succeed(result);
+      RCLCPP_INFO(this->rosNode->get_logger(), "Goal succeeded");
+
+    }).detach();
   }
 };
 
