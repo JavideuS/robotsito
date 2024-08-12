@@ -5,7 +5,7 @@ from rclpy.node import Node
 from custom_action_interfaces.action import ServoLegs
 #Change the python interpreter to the one of the venv to use the library correctly
 from adafruit_servokit import ServoKit
-from ros_gz_interfaces.msg import Float32Array
+from std_msgs.msg import UInt8MultiArray
 
 
 #inherits from Node
@@ -42,7 +42,7 @@ class ActionServer(Node):
         #Lastly print a message indicating that the action server was initialized
         self.get_logger.info("Gait control action server has been initialized succesfuly <3")
         #Creates topic for gazebo sim
-        self.publisher = self.create_publisher(Float32Array, '/Joints_angle', 10)
+        self.publisher = self.create_publisher(UInt8MultiArray, '/Joints_angle', 10)
 
     #Destructor    
     def destroy(self):
@@ -71,10 +71,12 @@ class ActionServer(Node):
         #First we call the node logger and print the starting/call of the function
         self.get_logger.info("Executing goal...")
 
-        #First we retrieve the angles passed
+        #First we retrieve the angles and the layout passed
         angles = goal_handle.request.angles
-        #If the angles !=12 position -> Warning
-        if(len(angles) != 12):
+        layout = goal_handle.request.layout
+
+        #If the angles !=12n position -> Warning
+        if(len(angles) % 12 != 0):
             goal_handle.abort()
             return ServoLegs.Result(success=False)
 
@@ -82,30 +84,45 @@ class ActionServer(Node):
         feedback_msg = ServoLegs.Feedback()
         #Feedback is the current status of the servos
         feedback_msg.current_angles = self.status
-        for i in range(12):
-            if goal_handle.is_cancel_requested:
-                goal_handle.canceled()
-                self.get_logger().info('Goal canceled')
-                return ServoLegs.Result(success=False)
-            
-            self.kit.servo[i].angle = angles[i]
-            #We actualize the status
-            self.status[i] = angles[i]
-            
-            # Provide feedback
-            feedback_msg.current_angles = self.current_angles
-            goal_handle.publish_feedback(feedback_msg)
-            time.sleep(0.05)  # Adjust the sleep duration as needed
-            
-        #Send angles to other topic
-        float32_array_msg = Float32Array()
-        float32_array_msg.data = [float(angle) for angle in angles]
-        self.publisher.publish(float32_array_msg)
+
+
+        angles_array = self.reconstruct_2d_array(angles,layout)
+
+        for i in range(len(angles_array)):
+            for j in range(len(angles[0])):
+                if goal_handle.is_cancel_requested:
+                    goal_handle.canceled()
+                    self.get_logger().info('Goal canceled')
+                    return ServoLegs.Result(success=False)
+                
+                self.kit.servo[j].angle = angles[i][j]
+                #We actualize the status
+                self.status[j] = angles[j]
+                
+                # Provide feedback
+                feedback_msg.current_angles = self.current_angles
+                goal_handle.publish_feedback(feedback_msg)
+                time.sleep(0.05)  # Adjust the sleep duration as needed
           
         #Goal succed
         goal_handle.succeed()
         
         return ServoLegs.Result(success=True)
+
+    def reconstruct_2d_array(angles, layout):
+        # Get the dimensions from the layout
+        rows = layout.dim[0].size
+        cols = layout.dim[1].size
+
+        # Reconstruct the 2D array
+        reconstructed_array = []
+        for i in range(rows):
+            start_index = i * cols
+            end_index = start_index + cols
+            row = angles[start_index:end_index]
+            reconstructed_array.append(row)
+
+        return reconstructed_array
 
 
 def main(args=None):

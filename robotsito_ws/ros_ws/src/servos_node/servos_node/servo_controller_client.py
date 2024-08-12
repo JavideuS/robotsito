@@ -3,6 +3,8 @@ from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from custom_action_interfaces.action import ServoLegs
+from std_msgs.msg import UInt8MultiArray, MultiArrayLayout, MultiArrayDimension
+
 #Action class/object
 class actionClient(Node):
     
@@ -22,12 +24,15 @@ class actionClient(Node):
 
 
      #To send the goal
-    def send_goal (self,angles):
+    def send_goal (self,layout,angles):
+
         #Initilizing the goal message
         goal_msg = ServoLegs.Goal()
         #Assigning the angles to the goal
         goal_msg.angles = angles
-
+        #Assigning layout
+        goal_msg.layout = layout #MultiArrayLayout
+        
         #Waiting for the server
         self._action_client.wait_for_server()
         
@@ -63,8 +68,39 @@ class actionClient(Node):
         # Shutdown after receiving a result
         rclpy.shutdown()        
 
-    def walking_pattern():
-        return [90,0];
+    def walking_pattern(self):
+        
+        angles = [
+            [45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ],
+            [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ],
+            [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ]
+            ];
+
+        #Initializing layout
+        layout = MultiArrayLayout()
+        
+        rows = len(angles)
+        cols = len(angles[0]) if rows > 0 else 0
+
+
+       #2d array
+        dim1 = MultiArrayDimension()
+        dim1.label = "rows" 
+        dim1.size = rows
+        dim1.stride = rows * cols  # 12 joints (rows) x 3 columns
+
+        dim2 = MultiArrayDimension()
+        dim2.label = "columns"
+        dim2.size = cols
+        dim2.stride = cols  # contiguous in memory
+        
+        layout.dim = [dim1, dim2]
+        layout.data_offset = 0
+
+        # Flatten the 2D array into a 1D list
+        flattened_data = [angle for row in angles for angle in row]
+
+        self.send_goal(layout,flattened_data)
    
 
 
@@ -72,13 +108,13 @@ def main(args=None):
     rclpy.init(args=args)
     #Initializing action client
     action_client = actionClient()
-    #Example angles
-    angles = [180, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
-    #Sending the goal
-    action_client.send_goal(angles)
+    
+    #Calling walk_pattern
+    action_client.walking_pattern()
 
     #Calling the client node
     rclpy.spin(action_client)
+
     #Destroying the client node
     action_client.destroy_node()
     rclpy.shutdown()
