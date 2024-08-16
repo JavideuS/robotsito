@@ -13,7 +13,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <custom_action_interfaces/action/servo_legs.hpp>
-
+#include <std_msgs/msg/multi_array_dimension.hpp>
+#include <std_msgs/msg/multi_array_layout.hpp>
+#include <iostream>
 
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
@@ -101,6 +103,12 @@ public:
         }
       }
     }
+    //Rearranging the vector order
+    //This way it goes from lower to upper leg from left forward to right backward
+    std::swap(this->joints[0],this->joints[2]);
+    std::swap(this->joints[3],this->joints[5]);
+    std::swap(this->joints[6],this->joints[8]);
+    std::swap(this->joints[9],this->joints[11]);
 
     if (this->joints.size() != 12)
     {
@@ -116,8 +124,8 @@ public:
     this->targetAngles.resize(12, 0.0);
 
     // Set PID gains
-    double kp = 3;  // Proportional gain
-    double ki = 0.1;
+    double kp = 10;  // Proportional gain
+    double ki = 3;
     double kd = 0.01;  // Derivative gain
 
     // Initialize the PID controllers for each joint
@@ -194,20 +202,19 @@ public:
 
       gzdbg << "Joint " << i << ": Error: " << error << ", Force: " << force << std::endl;
 
-      // Max force equal to the max torque of the servo dm996
-      double maxForce = 1.275;
+      //Miuzei9g havee less torque
+      double maxForce = 0.215;
 
+      if(i == 2 || i == 5 || i == 8 || i == 11){
+        // Max force equal to the max torque of the servo dm996
+        maxForce = 1.275;
+      }
       // Safety limits
       force = std::clamp(force, -maxForce, maxForce);
 
       this->joints[i].SetForce(_ecm, { force });
     }
 
-
-    // std::vector<double> torque = {-0.2};
-    // std::vector<double> torque_R = {0.2};
-    // std::vector<double> torque_2 = {0.1};
-    // std::vector<double> torque_low = {0.04};
   }
 
   // Handle goal
@@ -216,7 +223,7 @@ public:
     RCLCPP_INFO(this->rosNode->get_logger(), "Received goal request");
     (void)uuid;
 
-    if (goal->angles.size() != 12)
+    if (goal->angles.size() % 12 != 0)
     {
       RCLCPP_WARN(this->rosNode->get_logger(), "Goal has incorrect number of angles");
       return rclcpp_action::GoalResponse::REJECT;
@@ -240,18 +247,37 @@ public:
       const auto goal = goal_handle->get_goal();
       auto result = std::make_shared<JointAction::Result>();
 
-      for (std::size_t i = 0; i < 12; ++i)
-      {
-        if (goal_handle->is_canceling())
-        {
-          result->success = false;
-          goal_handle->canceled(result);
-          RCLCPP_INFO(this->rosNode->get_logger(), "Goal canceled");
-          return;
-        }
+      //Retrieving layout and data
+      const auto &layout = goal->layout;
+      const auto &angles = goal->angles;
 
-        this->targetAngles[i] = (goal->angles[i] - 90) * (M_PI / 180);
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // Simulate processing delay
+      // Extract the dimensions from the layout
+      size_t rows = layout.dim[0].size;
+      size_t cols = layout.dim[1].size;
+
+      // Reconstruct the 2D array
+      std::vector<std::vector<uint8_t>> array_2d(rows, std::vector<uint8_t>(cols));
+
+      for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+              array_2d[i][j] = angles[(i * cols) + j];
+          }
+      }
+
+      for (std::size_t i = 0; i < rows; i++)
+      {
+        for(std::size_t j = 0; j < cols; j++){
+          if (goal_handle->is_canceling())
+          {
+            result->success = false;
+            goal_handle->canceled(result);
+            RCLCPP_INFO(this->rosNode->get_logger(), "Goal canceled");
+            return;
+          }
+
+          this->targetAngles[j] = (array_2d[i][j] - 90) * (M_PI / 180);
+          std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Simulate processing delay
+        }
       }
 
       result->success = true;

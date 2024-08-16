@@ -66,16 +66,12 @@
       <pose>0 0 0 0 0 0</pose>
       <self_collide>false</self_collide>
     </model>
-    
     <include>
-      <uri>model://robotsito.sdf</uri>
-      <!-- You can also specify the pose or other parameters if needed -->
-      <pose>0 0 0 0 0 0</pose>
-       <plugin name="JointPlugin" filename="libgz_plugins.so">
-      </plugin>
+      <uri>file:///home/javideus/gazebo/models/robotsito/</uri>
+      <name>robotsito</name>
+      <pose>-1.3244931697845459 -0.38568800687789917 0 0 0 0</pose>
+      <plugin name="JointPlugin" filename="libgz_plugins.so"/>
     </include>
-   
-
     <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>
       <cast_shadows>true</cast_shadows>
@@ -95,6 +91,5 @@
         <falloff>0</falloff>
       </spot>
     </light>
-  
   </world>
 </sdf>
