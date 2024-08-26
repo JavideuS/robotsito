@@ -71,34 +71,51 @@ class actionClient(Node):
     def walking_pattern(self):
         
         angles = [
-            [45, 45, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ],
-            [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ],
-            [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 ]
+            #90, 90, 90, 90, 90, 90, 135, 105, 90, 135, 75, 90, 90, 90, 90
+            #Upper leg angles are inverted for left and right, the rest are the same
+            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
+            [[90, 90, 90], [35, 75, 90], [90, 90, 90] ],
+            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
+            [[90, 90, 90], [35, 75, 90], [90, 90, 90] ],
+            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
+            [[90, 90, 90], [135, 75, 90], [90, 90, 90] ]
+            
             ];
 
         #Initializing layout
         layout = MultiArrayLayout()
         
-        rows = len(angles)
-        cols = len(angles[0]) if rows > 0 else 0
+        rows = len(angles) #6 legs
+        cols = len(angles[0]) if rows > 0 else 0 
+        depth = len(angles[0][0]) if cols > 0 else 0
 
 
-       #2d array
+       #3d array
+        
+        # First dimension: Rows (legs)
         dim1 = MultiArrayDimension()
         dim1.label = "rows" 
         dim1.size = rows
-        dim1.stride = rows * cols  # 12 joints (rows) x 3 columns
+        dim1.stride = rows * cols * depth  # Total number of elements in the array
 
+        # Second dimension: Columns (phases per leg)
         dim2 = MultiArrayDimension()
         dim2.label = "columns"
         dim2.size = cols
-        dim2.stride = cols  # contiguous in memory
+        dim2.stride = cols * depth  # Number of elements in one row (one leg)
+
+        # Third dimension: Depth (joints per phase)
+        dim3 = MultiArrayDimension()
+        dim3.label = "depth"
+        dim3.size = depth
+        dim3.stride = depth  # Number of elements in one column (one phase)
+
         
-        layout.dim = [dim1, dim2]
+        layout.dim = [dim1, dim2, dim3]
         layout.data_offset = 0
 
-        # Flatten the 2D array into a 1D list
-        flattened_data = [angle for row in angles for angle in row]
+        # Flatten the 3D array into a 1D list
+        flattened_data = [angle for row in angles for phase in row for angle in phase]
 
         self.send_goal(layout,flattened_data)
    
