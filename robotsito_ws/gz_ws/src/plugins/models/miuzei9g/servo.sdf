@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="miuzei9g">
+    <static>false</static>
+    <link name="miuzei9g_link">
+      <inertial>
+        <mass>0.009</mass>
+        <!-- The servos have already  set at the senter of X and Y, only need to adjust Z-->
+        <pose> 0 0 0.0145 0 0 0 </pose>
+        <inertia>
+          <ixx>7.4238e-07</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>1.0275e-06</iyy>
+          <iyz>0</iyz>
+          <izz>5.0838e-07</izz>
+        </inertia>
+      </inertial>
+      <visual name="miuzei9g_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="miuzei9g_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/miuzei9g.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

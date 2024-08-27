@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="middle_leg">
+    <static>false</static>
+    <link name="middle_leg_link">
+      <inertial auto="true" />
+      <visual name="middle_leg_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="middle_leg_collision">
+        <density>1240.0</density>
+        <geometry>
+          <mesh>
+            <uri>model://meshes/middle_leg.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
