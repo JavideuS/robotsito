@@ -24,7 +24,7 @@ class actionClient(Node):
 
 
      #To send the goal
-    def send_goal (self,layout,angles):
+    def send_goal (self,layout,angles,iterations):
 
         #Initilizing the goal message
         goal_msg = ServoLegs.Goal()
@@ -32,6 +32,8 @@ class actionClient(Node):
         goal_msg.angles = angles
         #Assigning layout
         goal_msg.layout = layout #MultiArrayLayout
+
+        goal_msg.iterations = iterations
         
         #Waiting for the server
         self._action_client.wait_for_server()
@@ -68,17 +70,16 @@ class actionClient(Node):
         # Shutdown after receiving a result
         rclpy.shutdown()        
 
-    def walking_pattern(self):
+    def walking_pattern(self,iterations):
         
         angles = [
-            #90, 90, 90, 90, 90, 90, 135, 105, 90, 135, 75, 90, 90, 90, 90
             #Upper leg angles are inverted for left and right, the rest are the same
-            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
-            [[90, 90, 90], [35, 75, 90], [90, 90, 90] ],
-            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
-            [[90, 90, 90], [35, 75, 90], [90, 90, 90] ],
-            [[135, 75, 90], [90, 75, 90], [90, 90, 90] ],
-            [[90, 90, 90], [135, 75, 90], [90, 90, 90] ]
+            [[120, 75, 90], [90, 75, 90], [90, 90, 90] ],
+            [[90, 90, 90], [120, 105, 90], [90, 90, 90] ],
+            [[90, 90, 90], [120, 75, 90], [90, 90, 90] ],
+            [[120, 105, 90], [90, 105, 90], [90, 90, 90] ],
+            [[120, 75, 90], [90, 75, 90], [90, 90, 90] ],
+            [[90, 90, 90], [120, 105, 90], [90, 90, 90] ]
             
             ];
 
@@ -117,7 +118,7 @@ class actionClient(Node):
         # Flatten the 3D array into a 1D list
         flattened_data = [angle for row in angles for phase in row for angle in phase]
 
-        self.send_goal(layout,flattened_data)
+        self.send_goal(layout,flattened_data,iterations)
    
 
 
@@ -127,7 +128,7 @@ def main(args=None):
     action_client = actionClient()
     
     #Calling walk_pattern
-    action_client.walking_pattern()
+    action_client.walking_pattern(5)
 
     #Calling the client node
     rclpy.spin(action_client)
