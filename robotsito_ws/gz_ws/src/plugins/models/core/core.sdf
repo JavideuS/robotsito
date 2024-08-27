@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="core">
+    <static>false</static>
+    <link name="core_link">
+      <inertial>
+        <mass>0.5</mass>
+        <pose>0 0 -0.008 0 0 0</pose>
+        <inertia>
+          <ixx>0.0003576666666666666</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>8.683333333333332e-05</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.00040416666666666666</izz>
+        </inertia>
+      </inertial>
+      <visual name="core_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/core.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="core_collision">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/core.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

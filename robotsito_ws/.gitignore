@@ -1,0 +1,17 @@
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.swp
+*.bak
+*.tmp
+
+# Environment and secret files
+.env

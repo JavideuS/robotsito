@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="upper_leg">
+    <static>false</static>
+    <link name="upper_leg_link">
+      <inertial auto="true" />
+      <visual name="upper_leg_visual">
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="upper_leg_collision">
+        <density>1240.0</density>
+        <geometry>
+          <mesh>
+            <uri>model://meshes/upper_leg.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
