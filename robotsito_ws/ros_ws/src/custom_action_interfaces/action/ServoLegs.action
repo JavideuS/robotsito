@@ -1,6 +1,7 @@
 # Goal
 std_msgs/MultiArrayLayout layout
 uint8[] angles
+uint32 iterations
 ---
 # Result
 bool success
