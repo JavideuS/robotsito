@@ -9,13 +9,18 @@
 #include <gz/msgs/float_v.pb.h>
 #include <gz/sim/components.hh>  //To get the components
 #include <gz/sim/Joint.hh>
-
+//Ros libraries
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <custom_action_interfaces/action/servo_legs.hpp>
 #include <std_msgs/msg/multi_array_dimension.hpp>
 #include <std_msgs/msg/multi_array_layout.hpp>
 #include <iostream>
+//Multithreading libraries
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <ThreadPool.h>
 
 // Inherit from System and 2 extra interfaces:
 // ISystemConfigure and ISystemPostUpdate
@@ -37,16 +42,26 @@ private:
   // ROS 2 Node
   rclcpp::Node::SharedPtr rosNode;
 
+  // Mutex for synchronizing access to shared data
+  std::mutex mutex_;
+
+  // Condition variable to signal when all threads are done
+  std::condition_variable cv_;
+  int threadsRemaining_;
+  //Threadpool
+  ThreadPool pool{6};  // Example: Construct with a number of threads
+
+
    // Action server definition
   using JointAction = custom_action_interfaces::action::ServoLegs;
   rclcpp_action::Server<JointAction>::SharedPtr actionServer;
 
   void OnRosMsg(const gz::msgs::Float_V& _msg)
   {
-    // Store the received data (assuming it contains 12 angles for simplicity)
-    if (_msg.data().size() == 12)
+    // Store the received data (assuming it contains 18 angles for simplicity)
+    if (_msg.data().size() == 18)
     {
-      for (std::size_t i = 0; i < 12; ++i)
+      for (std::size_t i = 0; i < 18; ++i)
       {
         // Converting degrees to radians since gz works with rads
         // Note:: The real servos work with degrees
@@ -56,6 +71,44 @@ private:
       }
     }
   }
+
+  // Method to handle moving a single leg
+ void MoveLeg(std::size_t leg_index, const std::vector<std::vector<double>>& leg_angles, size_t num_iterations, std::shared_ptr<rclcpp_action::ServerGoalHandle<JointAction>> goal_handle)
+{
+    for (size_t iteration = 0; iteration < num_iterations; ++iteration)
+    {
+        for (const auto& joint_angles : leg_angles)
+        {
+            if (goal_handle->is_canceling())
+            {
+                return;  // Exit if the goal is canceled
+            }
+
+            {
+                // Lock the mutex while accessing shared data
+                std::lock_guard<std::mutex> lock(mutex_);
+                for (std::size_t joint = 0; joint < joint_angles.size(); ++joint)
+                {
+                    // Update the target angle for the joint in this leg
+                    this->targetAngles[leg_index * 3 + joint] = (joint_angles[joint] - 90) * (M_PI / 180);
+                }
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Simulate processing delay
+        }
+    }
+
+    {
+        // Signal that this task is done
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (--threadsRemaining_ == 0)
+        {
+            cv_.notify_one();  // Notify the main thread that all leg threads are done
+        }
+    }
+}
+
+
 
 public:
   JointPlugin() = default;
@@ -88,7 +141,7 @@ public:
     // Retrieve joints
     auto allJoints = model.Joints(_ecm);
 
-    // Filter for revolute joints and limit to the first 12
+    // Filter for revolute joints and limit to the first 18
     int revoluteJointCount = 0;
     for (const auto& jointEntity : allJoints)
     {
@@ -97,22 +150,16 @@ public:
       {
         this->joints.push_back(joint);
         revoluteJointCount++;
-        if (revoluteJointCount == 12)
+        if (revoluteJointCount == 18)
         {
           break;
         }
       }
     }
-    //Rearranging the vector order
-    //This way it goes from lower to upper leg from left forward to right backward
-    std::swap(this->joints[0],this->joints[2]);
-    std::swap(this->joints[3],this->joints[5]);
-    std::swap(this->joints[6],this->joints[8]);
-    std::swap(this->joints[9],this->joints[11]);
 
-    if (this->joints.size() != 12)
+    if (this->joints.size() != 18)
     {
-      gzerr << "Expected 12 revolute joints, but found " << this->joints.size() << std::endl;
+      gzerr << "Expected 18 revolute joints, but found " << this->joints.size() << std::endl;
       return;
     }
 
@@ -120,16 +167,16 @@ public:
     this->node.Subscribe("/Joints_angle", &JointPlugin::OnRosMsg, this);
 
     // Iniatalizing velocity and angles
-    this->previousVelocity.resize(12, 0.0);
-    this->targetAngles.resize(12, 0.0);
+    this->previousVelocity.resize(18, 0.0);
+    this->targetAngles.resize(18, 0.0);
 
     // Set PID gains
-    double kp = 10;  // Proportional gain
-    double ki = 3;
+    double kp = 3;  // Proportional gain
+    double ki = 1;
     double kd = 0.01;  // Derivative gain
 
     // Initialize the PID controllers for each joint
-    for (int i = 0; i < 12; ++i)
+    for (int i = 0; i < 18; ++i)
     {
       this->pidControllers.push_back(gz::math::PID(kp, ki, kd));
     }
@@ -152,14 +199,8 @@ public:
     // If simulation isn/t running
     if (_info.paused)
       return;
-    // If simulation hasn't started
-    if (_info.simTime <= std::chrono::_V2::steady_clock::duration{ 0 })
-    {
-      // Note that this basically makes sure that the values retrieved by position and velocity are well initialized
-      return;  // Wait until the simulation has started
-    }
 
-    for (std::size_t i = 0; i < 12; ++i)
+    for (std::size_t i = 0; i < 18; ++i)
     {
       this->joints[i].EnablePositionCheck(_ecm);
       this->joints[i].EnableVelocityCheck(_ecm);
@@ -202,13 +243,9 @@ public:
 
       gzdbg << "Joint " << i << ": Error: " << error << ", Force: " << force << std::endl;
 
-      //Miuzei9g havee less torque
-      double maxForce = 0.215;
+      // Max force equal to the max torque of the miuzei9g 
+      double maxForce = 0.216;
 
-      if(i == 2 || i == 5 || i == 8 || i == 11){
-        // Max force equal to the max torque of the servo dm996
-        maxForce = 1.275;
-      }
       // Safety limits
       force = std::clamp(force, -maxForce, maxForce);
 
@@ -223,7 +260,7 @@ public:
     RCLCPP_INFO(this->rosNode->get_logger(), "Received goal request");
     (void)uuid;
 
-    if (goal->angles.size() % 12 != 0)
+    if (goal->angles.size() % 18 != 0)
     {
       RCLCPP_WARN(this->rosNode->get_logger(), "Goal has incorrect number of angles");
       return rclcpp_action::GoalResponse::REJECT;
@@ -240,51 +277,71 @@ public:
   }
 
   // Handle accepted
-  void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<JointAction>> goal_handle)
-  {
+  void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<JointAction>> goal_handle) 
+{
     std::thread([this, goal_handle]()
     {
-      const auto goal = goal_handle->get_goal();
-      auto result = std::make_shared<JointAction::Result>();
+        const auto goal = goal_handle->get_goal();
+        auto result = std::make_shared<JointAction::Result>();
 
-      //Retrieving layout and data
-      const auto &layout = goal->layout;
-      const auto &angles = goal->angles;
+        // Retrieve layout, angles data, and number of iterations
+        const auto &layout = goal->layout;
+        const auto &angles = goal->angles;
+        size_t num_iterations = goal->iterations;  // Ensure that your action definition includes this field
 
-      // Extract the dimensions from the layout
-      size_t rows = layout.dim[0].size;
-      size_t cols = layout.dim[1].size;
+        // Extract the dimensions from the layout
+        size_t num_legs = layout.dim[0].size;
+        size_t num_time_steps = layout.dim[1].size;
+        size_t num_joints_per_leg = 3;
 
-      // Reconstruct the 2D array
-      std::vector<std::vector<uint8_t>> array_2d(rows, std::vector<uint8_t>(cols));
+        // Reconstruct the 3D array (leg, time_step, joint_angle)
+        std::vector<std::vector<std::vector<double>>> angles_3d(num_legs, std::vector<std::vector<double>>(num_time_steps, std::vector<double>(num_joints_per_leg)));
+        for (size_t i = 0; i < num_legs; ++i)
+        {
+            for (size_t j = 0; j < num_time_steps; ++j)
+            {
+                for (size_t k = 0; k < num_joints_per_leg; ++k)
+                {
+                    angles_3d[i][j][k] = angles[i * num_time_steps * num_joints_per_leg + j * num_joints_per_leg + k];
+                }
+            }
+        }
 
-      for (size_t i = 0; i < rows; i++) {
-        for (size_t j = 0; j < cols; j++) {
-              array_2d[i][j] = angles[(i * cols) + j];
-          }
-      }
+        // Set the number of threads remaining
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            threadsRemaining_ = num_legs;
+        }
 
-      for (std::size_t i = 0; i < rows; i++)
-      {
-        for(std::size_t j = 0; j < cols; j++){
-          if (goal_handle->is_canceling())
-          {
+        // Launch tasks for each leg
+        for (std::size_t i = 0; i < num_legs; ++i)
+        {
+            pool.enqueue([this, i, angles_3d = angles_3d[i], num_iterations, goal_handle]()
+            {
+                this->MoveLeg(i, angles_3d, num_iterations, goal_handle);
+            });
+        }
+
+        // Wait for all tasks to complete
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            cv_.wait(lock, [this]() { return threadsRemaining_ == 0; });
+        }
+
+        // Check if goal was canceled
+        if (goal_handle->is_canceling())
+        {
             result->success = false;
             goal_handle->canceled(result);
             RCLCPP_INFO(this->rosNode->get_logger(), "Goal canceled");
             return;
-          }
-
-          this->targetAngles[j] = (array_2d[i][j] - 90) * (M_PI / 180);
-          std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Simulate processing delay
         }
-      }
 
-      result->success = true;
-      goal_handle->succeed(result);
-      RCLCPP_INFO(this->rosNode->get_logger(), "Goal succeeded");
+        result->success = true;
+        goal_handle->succeed(result);
+        RCLCPP_INFO(this->rosNode->get_logger(), "Goal succeeded");
 
-    }).detach();
+   }).detach();
   }
 };
 

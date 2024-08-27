@@ -67,8 +67,8 @@
       <self_collide>false</self_collide>
     </model>
     <include>
-      <uri>file:///home/javideus/gazebo/models/robotsito/</uri>
-      <name>robotsito</name>
+      <uri>model://ant.sdf</uri>
+      <name>ant</name>
       <pose>-1.3244931697845459 -0.38568800687789917 0 0 0 0</pose>
       <plugin name="JointPlugin" filename="libgz_plugins.so"/>
     </include>

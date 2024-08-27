@@ -5,7 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
@@ -20,10 +20,8 @@ include_directories(
   ${rclcpp_action_INCLUDE_DIRS}
   ${gz-sim8_INCLUDE_DIRS}
   ${ros_gz_interfaces_INCLUDE_DIRS}
+  include  # Add the directory where ThreadPool.h is located
 )
-
-# Link directories
-link_directories(${gz-sim8_LIBRARY_DIRS})
 
 # Plugin
 add_library(${PROJECT_NAME} SHARED src/JointPlugin.cpp)
