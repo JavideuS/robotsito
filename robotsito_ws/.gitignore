@@ -15,3 +15,11 @@ __pycache__/
 
 # Environment and secret files
 .env
+
+# Python virtual environments (never commit these)
+.venv/
+venv/
+
+# External dependencies are vendored via vcstool, not committed.
+# Restore them with:  cd gz_ws && vcs import src/dependencies < dependencies.repos
+gz_ws/src/dependencies/

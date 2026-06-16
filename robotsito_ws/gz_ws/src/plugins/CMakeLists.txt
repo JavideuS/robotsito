@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(gz_plugins)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -10,8 +10,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(custom_action_interfaces REQUIRED)
-find_package(gz-sim8 REQUIRED)
-find_package(gz-cmake3 REQUIRED)
+find_package(gz-sim9 REQUIRED)
+find_package(gz-cmake4 REQUIRED)
 find_package(ros_gz_interfaces REQUIRED)
 
 # Include directories
@@ -25,7 +25,7 @@ include_directories(
 
 # Plugin
 add_library(${PROJECT_NAME} SHARED src/JointPlugin.cpp)
-ament_target_dependencies(${PROJECT_NAME} rclcpp rclcpp_action custom_action_interfaces gz-sim8 ros_gz_interfaces)
+ament_target_dependencies(${PROJECT_NAME} rclcpp rclcpp_action custom_action_interfaces gz-sim9 ros_gz_interfaces)
 target_link_libraries(${PROJECT_NAME} ${gz-sim8_LIBRARIES}
 rclcpp::rclcpp
 rclcpp_action::rclcpp_action

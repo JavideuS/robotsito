@@ -1,0 +1,41 @@
+repositories:
+  actuator_msgs:
+    type: git
+    url: https://github.com/rudislabs/actuator_msgs.git
+    version: 4594004f568b81aa5222c02f4784e6be6baa81ba
+  vision_msgs:
+    type: git
+    url: https://github.com/ros-perception/vision_msgs.git
+    version: e77fa2d97d69abaaa546592892d2d5d16cec9977
+  ros_gz:
+    type: git
+    url: https://github.com/gazebosim/ros_gz.git
+    version: jazzy
+  gps_umd:
+    type: git
+    url: https://github.com/swri-robotics/gps_umd.git
+    version: ros2-devel
+  gz_cmake_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_cmake_vendor.git
+    version: 5c05a675ee4fd2a49a7562aa035e2920565a8fa3
+  gz_math_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_math_vendor.git
+    version: 3d716eaefea2de98f7bc2276fcb87aa36206b3ab
+  gz_msgs_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_msgs_vendor.git
+    version: e7294d2ba8cfe719d520f26ad787f9f0a052d00b
+  gz_tools_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_tools_vendor.git
+    version: 97719f87a976488348e3ac9d12a6ff92e76f1019
+  gz_transport_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_transport_vendor.git
+    version: 94816b9cebefb0b8a35523d726b1af277607be89
+  gz_utils_vendor:
+    type: git
+    url: https://github.com/gazebosim/gz_utils_vendor.git
+    version: 92070fbb4e00658a2cc39b1c23330e1a07f9bbfc

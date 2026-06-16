@@ -81,6 +81,28 @@ The freeCad branch contains the design files for the quadruped robot. These file
         open SpiderV1_3.2.FCStd
         ```
         
+## Gazebo Workspace Dependencies
+
+The Gazebo workspace (`robotsito_ws/gz_ws`) relies on several external ROS/Gazebo
+packages. These are **not committed** to the repo; they are vendored on demand
+with [vcstool](https://github.com/dirk-thomas/vcstool) from
+`robotsito_ws/gz_ws/dependencies.repos`.
+
+To fetch them:
+
+```sh
+cd robotsito_ws/gz_ws
+mkdir -p src/dependencies
+vcs import src/dependencies < dependencies.repos
+colcon build
+```
+
+> **Heads up:** the `url`/`version` fields in `dependencies.repos` are a best
+> effort. The commit SHAs were preserved from the original pinned checkouts, but
+> please verify each repository URL and branch against the source you actually
+> build against before relying on it (e.g. the correct ROS distro branch for
+> `ros_gz` and `gps_umd`).
+
 ## Contributing
 
 Contributions are welcome! If you have any ideas, suggestions, or issues, please open an issue or submit a pull request.

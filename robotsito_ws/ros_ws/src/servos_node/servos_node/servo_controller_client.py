@@ -24,8 +24,9 @@ class actionClient(Node):
 
 
      #To send the goal
-    def send_goal (self,layout,angles,iterations):
+    def send_goal (self,iterations):
 
+        layout,angles = self.walking_pattern()
         #Initilizing the goal message
         goal_msg = ServoLegs.Goal()
         #Assigning the angles to the goal
@@ -70,7 +71,7 @@ class actionClient(Node):
         # Shutdown after receiving a result
         rclpy.shutdown()        
 
-    def walking_pattern(self,iterations):
+    def walking_pattern(self):
         
         angles = [
             #Upper leg angles are inverted for left and right, the rest are the same
@@ -118,8 +119,7 @@ class actionClient(Node):
         # Flatten the 3D array into a 1D list
         flattened_data = [angle for row in angles for phase in row for angle in phase]
 
-        self.send_goal(layout,flattened_data,iterations)
-   
+        return layout,flattened_data
 
 
 def main(args=None):
@@ -128,18 +128,15 @@ def main(args=None):
     action_client = actionClient()
     
     #Calling walk_pattern
-    action_client.walking_pattern(5)
+    future = action_client.send_goal(5)
 
     #Calling the client node
-    rclpy.spin(action_client)
+    rclpy.spin_until_future_complete(action_client,future)
 
     #Destroying the client node
     action_client.destroy_node()
-    rclpy.shutdown()
 
-
-
-
+    action_client.shutdown()
 
 if __name__ == "__main__":
     main()
